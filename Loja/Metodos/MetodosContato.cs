@@ -1,47 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Text;
-using System.Linq;
-using System.Threading.Tasks;
-
-public static class MetodosExtensao
-{
-    public static int Metade(this int valor)
-    {
-        return valor / 2;
-    }
-    public static double Juros(this double Valor)
-    {
-        return Valor + 20;
-    }
-    public static string PrimeiraMaiscula(this string Valor)
-    {
-        return Valor.Substring(0, 1).ToUpper() + Valor.Substring(1, Valor.Length - 1).ToLower();
-    }
-
-    public static string PrimeiraMaiscula(this string Valor, bool UltimasMinusculas)
-    {
-        if (UltimasMinusculas)
-        {
-            return Valor.Substring(0, 1).ToUpper() + Valor.Substring(1, Valor.Length - 1).ToLower();
-        }
-        else
-        {
-            return Valor.Substring(0, 1).ToUpper() + Valor.Substring(1, Valor.Length - 1);
-
-        }
-           
-        
-    }
-}
-
+using System.Data.SqlClient;
 
 namespace Loja.Classes
 {
-    public partial class Cliente : IDisposable
+    public partial class Contato : IDisposable
     {
-
         public void Insert()
         {
             using (SqlConnection cn = new SqlConnection("Server=.\\sqlexpress;Database=Loja;Trusted_Connection=True;"))
@@ -58,13 +23,12 @@ namespace Loja.Classes
                 }
                 using (SqlCommand cmd = new SqlCommand())
                 {
-                    cmd.CommandText = "Insert Into Cliente (codigo, nome, tipo, datacadastro) Values (@codigo, @nome, @tipo, @datacadastro)";
+                    cmd.CommandText = "Insert Into Contato (codigo, dadoscontato, tipo) Values (@codigo, @dadoscontato, @tipo)";
                     cmd.Connection = cn;
 
                     cmd.Parameters.AddWithValue("@codigo", this._codigo);
-                    cmd.Parameters.AddWithValue("@nome", this._nome);
-                    cmd.Parameters.AddWithValue("@tipo", this._tipo);
-                    cmd.Parameters.AddWithValue("@datacadastro", this._dataCadastro);
+                    cmd.Parameters.AddWithValue("@nome", this._dadoscontato);
+                    cmd.Parameters.AddWithValue("@tipo", this._tipo);                    
 
                     try
                     {
@@ -96,13 +60,13 @@ namespace Loja.Classes
                 }
                 using (SqlCommand cmd = new SqlCommand())
                 {
-                    cmd.CommandText = "Update Cliente Set nome = @nome, tipo = @tipo, datacadastro = @datacadastro Where codigo = @codigo";
+                    cmd.CommandText = "Update Contato Set dadoscontato = @dadoscontato, tipo = @tipo Where codigo = @codigo";
                     cmd.Connection = cn;
 
                     cmd.Parameters.AddWithValue("@codigo", this._codigo);
-                    cmd.Parameters.AddWithValue("@nome", this._nome);
+                    cmd.Parameters.AddWithValue("@dadoscontato", this._dadoscontato);
                     cmd.Parameters.AddWithValue("@tipo", this._tipo);
-                    cmd.Parameters.AddWithValue("@datacadastro", this._dataCadastro);
+                    
 
                     try
                     {
@@ -142,15 +106,15 @@ namespace Loja.Classes
                 }
                 using (SqlCommand cmd = new SqlCommand())
                 {
-                    cmd.CommandText = "Delete From Cliente Where codigo = @codigo";
+                    cmd.CommandText = "Delete From Contato Where codigo = @codigo";
                     cmd.Connection = cn;
 
                     cmd.Parameters.AddWithValue("@codigo", this._codigo);
-                 
+
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        
+
                     }
                     catch (Exception)
                     {
@@ -179,7 +143,7 @@ namespace Loja.Classes
                 using (SqlCommand cmd = new SqlCommand())
                 {
                     cmd.Connection = cn;
-                    cmd.CommandText = "Select Max(codigo) + 1 from Cliente";
+                    cmd.CommandText = "Select Max(codigo) + 1 from Contato";
 
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
@@ -195,14 +159,17 @@ namespace Loja.Classes
             }
             return _return;
         }
-        public void Dispose()
+
+        public Contato()
         {
-            this.Gravar();
-        }
-        public static List<Cliente> Todos()
+            this._isNew = true;
+            this._isModified = false;
+            this._codigo = Proximo();
+        }       
+        public static List<Contato> Todos(int Cliente)
         {
 
-            List<Cliente> _return = null;
+            List<Contato> _return = null;
 
             using (SqlConnection cn = new SqlConnection("Server=.\\sqlexpress;Database=Loja;Trusted_Connection=True;"))
             {
@@ -218,81 +185,42 @@ namespace Loja.Classes
                 using (SqlCommand cmd = new SqlCommand())
                 {
                     cmd.Connection = cn;
-                    cmd.CommandText = "Select * from Cliente";
-                    
+                    cmd.CommandText = "Select * from Contato where cliente = @cliente";
+                    cmd.Parameters.AddWithValue("@cliente", Cliente);
 
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
                         if (dr.HasRows)
                         {
-                            while(dr.Read())
+                            while (dr.Read())
                             {
-                                Cliente cli = new Cliente();
-                                cli._codigo = dr.GetInt32(dr.GetOrdinal("codigo"));
-                                cli._nome = dr.GetString(dr.GetOrdinal("nome"));
-                                cli._tipo = dr.GetInt32(dr.GetOrdinal("tipo"));
-                                cli._dataCadastro = dr.GetDateTime(dr.GetOrdinal("datacadastro"));
-
-                                cli.Contatos = Contato.Todos(cli._codigo);
+                                Contato cont = new Contato();
+                                cont._codigo = dr.GetInt32(dr.GetOrdinal("codigo"));
+                                cont._dadoscontato = dr.GetString(dr.GetOrdinal("dadoscontato"));
+                                cont._tipo = dr.GetString(dr.GetOrdinal("tipo"));
+                                cont._cliente = dr.GetInt32(dr.GetOrdinal("cliente"));
 
                                 if (_return == null)
-                                    _return = new List<Cliente>();
+                                    _return = new List<Contato>();
 
-                                cli._isNew = false;
+                                cont._isNew = false;
 
-                                _return.Add(cli);
-                            }             
-                            
+                                _return.Add(cont);
+                            }
+
                         }
                     }
-                   
+
                 }
 
             }
 
             return _return;
         }
-        public Cliente()
+
+        public void Dispose()
         {
-            this._isNew = true;
-            this._isModified = false;
-            this._codigo = Proximo();
-        }
-        public Cliente(int codigo)
-        {
-            using(SqlConnection cn = new SqlConnection("Server=.\\sqlexpress;Database=Loja;Trusted_Connection=True;"))
-            {
-                try
-                {
-                    cn.Open();
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-                using(SqlCommand cmd = new SqlCommand())
-                {
-                    cmd.Connection = cn;
-                    cmd.CommandText = "Select * from Cliente where codigo = @codigo";
-                    cmd.Parameters.AddWithValue("@codigo", codigo);
-
-                    using (SqlDataReader dr = cmd.ExecuteReader())
-                    {
-                        if (dr.HasRows)
-                        {
-                            dr.Read();
-                            this._codigo = dr.GetInt32(dr.GetOrdinal("codigo"));
-                            this._nome = dr.GetString(dr.GetOrdinal("nome"));
-                            this._tipo = dr.GetInt32(dr.GetOrdinal("tipo"));
-                            this._dataCadastro = dr.GetDateTime(dr.GetOrdinal("datacadastro"));
-                        }
-                    }
-                    this._isNew = false;
-                    this._isModified = false;
-                }
-
-            }
+            this.Gravar();
         }
     }
 }
