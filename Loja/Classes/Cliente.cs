@@ -5,19 +5,18 @@ using System.Text;
 
 namespace Loja.Classes
 {
-	public partial class Cliente
-	{
+	public partial class Cliente : IDisposable
+    {
 
         private bool _isNew;
         [Browsable(false)]
-
         public bool IsNew
         {
             get { return _isNew; }           
         }
+
         private bool _isModified;
         [Browsable(false)]
-
         public bool IsModified
         {
             get { return _isModified; }            
@@ -26,6 +25,7 @@ namespace Loja.Classes
 
         //public int Codigo { get; set; }
         private int _codigo;
+        [DisplayName("Código")]
 		public int Codigo
         {
             get 
@@ -36,7 +36,7 @@ namespace Loja.Classes
 			{ 
                 if(value < 0 )
                 {
-                    throw new Loja.Excecoes.ValidacaoException("O cidigo do cliente não pode ser negativo!");
+                    throw new Loja.Excecoes.ValidacaoException("O cidigo do Cliente não pode ser negativo!");
                     //_codigo = 0;
                 }
 				_codigo = value;
@@ -46,7 +46,7 @@ namespace Loja.Classes
 
         //public string Nome { get; set; }
         private string _nome;
-
+        [DisplayName("Nome do Cliente")]
         public string Nome
         {
             get 
@@ -64,7 +64,6 @@ namespace Loja.Classes
 
         //public int? Tipo { get; set; }
         private int? _tipo;
-
         public int? Tipo
         {
             get 
@@ -80,7 +79,7 @@ namespace Loja.Classes
 
         //public DateTime DataCadastro { get; set; }
         private DateTime _dataCadastro;
-
+        [DisplayName("Data de Cadastro")]
         public DateTime DataCadastro
         {
             get 
@@ -95,11 +94,11 @@ namespace Loja.Classes
         }
 
         //public List<Contato> Contatos { get; set; }
-        private List<Contato> _contatos;
+        //private List<Contato> _contatos;
 
-        public List<Contato> Contatos
-        {
-            get 
+        public List<Contato> Contatos { get; set; }
+
+        /*    get 
             { 
                 return _contatos; 
             }
@@ -108,7 +107,7 @@ namespace Loja.Classes
                 _contatos = value;
                 this._isModified = true;
             }
-        }
+        }*/
 
 
 
